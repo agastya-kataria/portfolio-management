@@ -1,5 +1,5 @@
-def calculate_return(portfolio, initial_investment):
-    total_value = portfolio.calculate_value()
+def calculate_return(portfolio, initial_investment, current_prices):
+    total_value = portfolio.calculate_value(current_prices)
     return (total_value - initial_investment) / initial_investment
 
 

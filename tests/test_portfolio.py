@@ -10,7 +10,7 @@ class TestPortfolio(unittest.TestCase):
         self.portfolio.add_asset('AAPL', 10, 150)
         self.assertIn('AAPL', self.portfolio.assets)
         self.assertEqual(self.portfolio.assets['AAPL']['quantity'], 10)
-        self.assertEqual(self.portfolio.assets['AAPL']['price'], 150)
+        self.assertEqual(self.portfolio.assets['AAPL']['price_per_unit'], 150)
 
     def test_remove_asset(self):
         self.portfolio.add_asset('AAPL', 10, 150)
@@ -23,7 +23,8 @@ class TestPortfolio(unittest.TestCase):
     def test_calculate_value(self):
         self.portfolio.add_asset('AAPL', 10, 150)
         self.portfolio.add_asset('GOOGL', 5, 1000)
-        total_value = self.portfolio.calculate_value()
+        current_prices = {'AAPL': 150, 'GOOGL': 1000}
+        total_value = self.portfolio.calculate_value(current_prices)
         self.assertEqual(total_value, 1500 + 5000)
 
 if __name__ == '__main__':

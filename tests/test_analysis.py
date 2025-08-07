@@ -8,15 +8,22 @@ class TestAnalysis(unittest.TestCase):
         self.portfolio = Portfolio()
         self.portfolio.add_asset('AAPL', 10, 150)  # 10 shares of Apple at $150 each
         self.portfolio.add_asset('GOOGL', 5, 1000)  # 5 shares of Google at $1000 each
+        self.current_prices = {'AAPL': 150, 'GOOGL': 1000}
 
     def test_calculate_return(self):
-        expected_return = (10 * 150 + 5 * 1000) / self.portfolio.calculate_value()
-        self.assertAlmostEqual(calculate_return(self.portfolio), expected_return)
+        expected_return = (10 * 150 + 5 * 1000) / self.portfolio.calculate_value(self.current_prices)
+        # Assuming initial_investment is the sum of initial purchases
+        initial_investment = 10 * 150 + 5 * 1000
+        self.assertAlmostEqual(calculate_return(self.portfolio, initial_investment), expected_return)
 
     def test_calculate_risk(self):
-        # Assuming some mock data for risk calculation
-        expected_risk = 0.05  # Placeholder for expected risk value
-        self.assertAlmostEqual(calculate_risk(self.portfolio), expected_risk)
+        import pandas as pd
+        # Mock historical prices DataFrame
+        data = {'AAPL': [150, 152, 151, 153], 'GOOGL': [1000, 1005, 995, 1010]}
+        historical_prices = pd.DataFrame(data)
+        # Calculate expected risk using the same logic as in calculate_risk
+        expected_risk = historical_prices.pct_change().dropna().std().mean()
+        self.assertAlmostEqual(calculate_risk(self.portfolio, historical_prices), expected_risk)
 
 if __name__ == '__main__':
     unittest.main()

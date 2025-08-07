@@ -11,9 +11,9 @@ class TestAnalysis(unittest.TestCase):
         self.current_prices = {'AAPL': 150, 'GOOGL': 1000}
 
     def test_calculate_return(self):
-        expected_return = (10 * 150 + 5 * 1000) / self.portfolio.calculate_value(self.current_prices)
         # Assuming initial_investment is the sum of initial purchases
         initial_investment = 10 * 150 + 5 * 1000
+        expected_return = 0.0  # No gain/loss, so return should be 0.0
         self.assertAlmostEqual(calculate_return(self.portfolio, initial_investment, self.current_prices), expected_return)
 
     def test_calculate_risk(self):

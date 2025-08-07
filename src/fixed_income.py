@@ -1,5 +1,7 @@
 import math
 from typing import List
+
+import pandas as pd
 import numpy as np
 import pandas as pd
 from scipy.interpolate import CubicSpline
@@ -28,20 +30,55 @@ def price_bond(face_value: float, coupon_rate: float, maturity: float, yield_rat
 
 
 class Bond:
-    def __init__(self, face_value: float, coupon_rate: float, maturity: float, frequency: int = 1):
+    def __init__(self, face_value: float, coupon_rate: float, maturity: float, frequency: int = 1,
+                 callable: bool = False, call_date: float = None, cpi_series: pd.Series = None):
         '''
         face_value: principal repaid at maturity
         coupon_rate: annual coupon rate (as decimal)
         maturity: years to maturity
         frequency: number of coupon payments per year
+        callable: True if bond is callable
+        call_date: years to call (if callable)
+        cpi_series: pd.Series of CPI index (for TIPS)
         '''
         self.face_value = face_value
         self.coupon_rate = coupon_rate
         self.maturity = maturity
         self.frequency = frequency
+        self.callable = callable
+        self.call_date = call_date
+        self.cpi_series = cpi_series
 
-    def price(self, yield_rate: float) -> float:
-        '''Return the present value of the bond for a given yield.'''
+    def price(self, yield_rate: float, real_yield: float = None) -> float:
+        '''
+        Return the present value of the bond for a given yield.
+        For callable: price at worst yield (maturity or call date).
+        For TIPS: use real_yield and inflation-adjusted principal/coupons.
+        '''
+        # TIPS logic
+        if self.cpi_series is not None and real_yield is not None:
+            # Assume cpi_series index is payment period (int), value is CPI
+            n_periods = int(self.maturity * self.frequency)
+            base_cpi = self.cpi_series.iloc[0]
+            pv = 0.0
+            for t in range(1, n_periods + 1):
+                # Adjust principal for inflation
+                cpi_t = self.cpi_series.iloc[min(t, len(self.cpi_series)-1)]
+                inflated_principal = self.face_value * (cpi_t / base_cpi)
+                coupon = inflated_principal * self.coupon_rate / self.frequency
+                pv += coupon / (1 + real_yield / self.frequency) ** t
+            # Final principal payment
+            cpi_T = self.cpi_series.iloc[min(n_periods, len(self.cpi_series)-1)]
+            inflated_principal = self.face_value * (cpi_T / base_cpi)
+            pv += inflated_principal / (1 + real_yield / self.frequency) ** n_periods
+            return pv
+        # Callable logic
+        if self.callable and self.call_date is not None:
+            # Price to maturity and to call date, return worst (lowest) price
+            price_maturity = price_bond(self.face_value, self.coupon_rate, self.maturity, yield_rate, self.frequency)
+            price_call = price_bond(self.face_value, self.coupon_rate, self.call_date, yield_rate, self.frequency)
+            return min(price_maturity, price_call)
+        # Vanilla bond
         return price_bond(self.face_value, self.coupon_rate, self.maturity, yield_rate, self.frequency)
 
 
@@ -102,6 +139,37 @@ def bootstrap_yield_curve(bond_list: List[Bond]) -> pd.DataFrame:
     out = pd.merge(df, interp_df, on='maturity', how='outer').sort_values('maturity').reset_index(drop=True)
     return out
 
+def simulate_yield_shift(zero_curve_df: pd.DataFrame, scenario: str, shift_bp: float) -> pd.DataFrame:
+    """
+    Apply a yield curve shock scenario to the zero curve DataFrame.
+    Args:
+        zero_curve_df: DataFrame with at least columns ['maturity', 'spot_rate']
+        scenario: 'parallel' or 'steepening'
+        shift_bp: shift in basis points (float)
+    Returns:
+        DataFrame with shocked spot rates (same structure as input)
+    """
+    shocked = zero_curve_df.copy()
+    shift = shift_bp / 10000  # convert bp to decimal
+    if scenario == "parallel":
+        shocked["spot_rate"] = shocked["spot_rate"] + shift
+        if "interpolated_spot_rate" in shocked.columns:
+            shocked["interpolated_spot_rate"] = shocked["interpolated_spot_rate"] + shift
+    elif scenario == "steepening":
+        # For maturities <= 2y: subtract half shift; >2y: add half shift
+        shocked["spot_rate"] = shocked.apply(
+            lambda row: row["spot_rate"] - 0.5 * shift if row["maturity"] <= 2 else row["spot_rate"] + 0.5 * shift,
+            axis=1
+        )
+        if "interpolated_spot_rate" in shocked.columns:
+            shocked["interpolated_spot_rate"] = shocked.apply(
+                lambda row: row["interpolated_spot_rate"] - 0.5 * shift if row["maturity"] <= 2 else row["interpolated_spot_rate"] + 0.5 * shift,
+                axis=1
+            )
+    else:
+        raise ValueError(f"Unknown scenario: {scenario}")
+    return shocked
+
 
 if __name__ == "__main__":
     # Unit tests for price_bond and Bond class
@@ -120,9 +188,22 @@ if __name__ == "__main__":
     price3 = bond3.price(0.05)
     print(f"Bond 3 (semi-annual): Price = {price3:.2f} (should be > 100.00)")
 
-    # Manual calculation for bond3 for verification
-    # Coupon = 3.00 per period, n=6, yield per period=0.025
-    # PV = sum(3/(1.025)^t for t=1..6) + 100/(1.025)^6
+    # Callable bond example
+    callable_bond = Bond(100, 0.05, 10, 1, callable=True, call_date=5)
+    price_callable = callable_bond.price(0.04)
+    print(f"Callable Bond (worst of 10y/5y): Price = {price_callable:.2f} (should be min of 10y/5y price)")
+
+    # TIPS example
+    # Simulate CPI index for 5 years (annual payments)
+    cpi_series = pd.Series([250, 255, 260, 265, 270, 275])  # base + 2%/yr approx
+    tips_bond = Bond(100, 0.01, 5, 1, cpi_series=cpi_series)
+    price_tips = tips_bond.price(yield_rate=0.005, real_yield=0.005)
+    print(f"TIPS Bond: Price = {price_tips:.2f} (inflation-adjusted, real yield 0.5%)")
+
+    # Vanilla for comparison
+    vanilla_bond = Bond(100, 0.01, 5, 1)
+    price_vanilla = vanilla_bond.price(0.005)
+    print(f"Vanilla Bond: Price = {price_vanilla:.2f} (no inflation, yield 0.5%)")
 
     # Example for bootstrapping: 3 annual bonds with known prices
     # Assume market prices (not par):

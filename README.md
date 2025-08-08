@@ -55,19 +55,16 @@ Visualize bootstrapped spot curves and forward rates with interactive plotting.
 ### Holdings & Risk Overview
 Comprehensive portfolio metrics, risk analysis, and diversification monitoring.
 
-<p align="center"> <img width="45%" alt="Holdings Breakdown" src="https://github.com/user-attachments/assets/43cc8ab1-a39a-489b-9ec5-4a6837bf6c2f" /> <img width="45%" alt="Risk Metrics" src="https://github.com/user-attachments/assets/c27698e2-c9a8-468e-8374-85c3caa8bebd" /> </p>
-
-
+<img width="1919" height="869" alt="image"  src="https://github.com/user-attachments/assets/241b72ae-a1bf-4bc2-8848-d572a4f13153" />
 
 
 ### Interest Rate Stress Testing
 Apply yield curve shocks and analyze portfolio sensitivity to interest rate changes.
-
-<img width="1919" height="775" alt="image" src="https://github.com/user-attachments/assets/5a0a1ae1-d9c0-4a36-8c65-48bb27ed7868" />
+<img width="1909" height="862" alt="image" src="https://github.com/user-attachments/assets/43cc8ab1-a39a-489b-9ec5-4a6837bf6c2f" />
 
 ### Monte Carlo Simulations & Value-at-Risk (VaR)
 Monte Carlo simulation results with Value-at-Risk calculations and P&L distributions.
-<img width="1919" height="802" alt="image" src="https://github.com/user-attachments/assets/b5da591f-637e-4ed6-96ce-0d5225f15145" />
+<img width="1919" height="775" alt="image" src="https://github.com/user-attachments/assets/5a0a1ae1-d9c0-4a36-8c65-48bb27ed7868" />
 
 
 ### Cash Reinvestment Engine

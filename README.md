@@ -73,7 +73,8 @@ Monte Carlo simulation results with Value-at-Risk calculations and P&L distribut
 ### Cash Reinvestment Engine
 Cash management, reinvestment automation, and diversification rule enforcement.
 
-<img width="1903" height="842" alt="image" src="https://github.com/user-attachments/assets/f30ad4ad-4633-425a-9d8e-119c366dd002" />
+<img width="1918" height="869" alt="image" src="https://github.com/user-attachments/assets/13d4f1e6-f4dc-4329-98a2-69bd4754112a" />
+
 
 ### Session Controls & Audit Log
 Portfolio state management, preferences, and data export/import functionality.

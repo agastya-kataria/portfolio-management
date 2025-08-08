@@ -78,7 +78,8 @@ Cash management, reinvestment automation, and diversification rule enforcement.
 ### Session Controls & Audit Log
 Portfolio state management, preferences, and data export/import functionality.
 
-![Uploading image.png…]()
+<img width="1919" height="867" alt="image" src="https://github.com/user-attachments/assets/de9f5396-08a2-4499-a0f0-e8829881eb3b" />
+
 
 ---
 

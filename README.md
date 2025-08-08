@@ -159,5 +159,3 @@ Contributions are welcome! Please:
 - Streamlit, Plotly, pandas, numpy, and the open-source community.
 
 ---
-
-> _For more info, see the in-app Help & Guidance expander or the sidebar Getting Started guide._
